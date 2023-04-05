@@ -8,7 +8,7 @@ Downloads a dataset from labelbox and formats it for yolov5.
 
 ```
 # Clone the repository
-git clone --recurse-submodules git@github.com:stridera/robotron_classifier.git
+git clone --recurse-submodule git@github.com:stridera/labelbox_to_yolo.git
 
 # Create a virtual environment (optional)
 python3 -m venv .venv
