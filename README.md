@@ -43,13 +43,13 @@ cd yolov5
 python train.py --img 640 --batch 16 --epochs 3 --data ../datasets/Robotron/dataset.yaml --weights yolov5s.pt
 ```
 
-Note: It'll end with something like `Results saved to runs/train/exp15`. The `exp15` is the experiment name.
+Note: It'll end with something like `Results saved to runs/train/exp`. The `exp` is the experiment name.
 
 ### Test the model
 
 ```
 cd yolov5
-python detect.py --data ../datasets/Robotron/dataset.yaml --weights runs/train/exp15/weights/best.pt --img 640 --conf 0.25 --source ../datasets/Robotron/images/
+python detect.py --data ../datasets/Robotron/dataset.yaml --weights runs/train/exp/weights/best.pt --img 640 --conf 0.25 --source ../datasets/Robotron/images/
 ```
 
 Note: Replace /exp/ with the name of your experiment
