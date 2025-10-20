@@ -52,20 +52,35 @@ python ./save_dataset.py
 
 ### Train the model
 
+#### Option 1: Transfer Learning (Recommended for quick results)
+Uses pre-trained COCO weights as a starting point:
+
 ```bash
 # Using Poetry
-poetry run yolo train data=datasets/Robotron/dataset.yaml model=yolo11n.pt epochs=3 imgsz=640 batch=16
+poetry run yolo train data=datasets/Robotron/dataset.yaml model=yolo11n.pt epochs=50 imgsz=640 batch=16
 
 # Using pip
-yolo train data=datasets/Robotron/dataset.yaml model=yolo11n.pt epochs=3 imgsz=640 batch=16
+yolo train data=datasets/Robotron/dataset.yaml model=yolo11n.pt epochs=50 imgsz=640 batch=16
+```
+
+#### Option 2: Train from Scratch (Using only your data)
+Trains a completely new model without any pre-trained weights:
+
+```bash
+# Using Poetry
+poetry run yolo train data=datasets/Robotron/dataset.yaml model=yolo11n.yaml epochs=100 imgsz=640 batch=16 pretrained=False
+
+# Using pip
+yolo train data=datasets/Robotron/dataset.yaml model=yolo11n.yaml epochs=100 imgsz=640 batch=16 pretrained=False
 ```
 
 **Model options:**
-- `yolo11n.pt` - Nano (fastest, recommended for Robotron)
-- `yolo11s.pt` - Small
-- `yolo11m.pt` - Medium
-- `yolo11l.pt` - Large
-- `yolo11x.pt` - Extra Large
+- **Transfer Learning (*.pt files):** `yolo11n.pt`, `yolo11s.pt`, `yolo11m.pt`, `yolo11l.pt`, `yolo11x.pt`
+- **From Scratch (*.yaml files):** `yolo11n.yaml`, `yolo11s.yaml`, `yolo11m.yaml`, `yolo11l.yaml`, `yolo11x.yaml`
+
+**When to use each approach:**
+- **Transfer Learning:** Faster training (50 epochs), good results with limited data
+- **From Scratch:** Pure custom model, no external data influence, requires more epochs (100+)
 
 Note: Results are saved to `runs/detect/train`, `runs/detect/train2`, etc.
 
@@ -90,3 +105,7 @@ poetry run yolo val model=runs/detect/train/weights/best.pt data=datasets/Robotr
 # Using pip
 yolo val model=runs/detect/train/weights/best.pt data=datasets/Robotron/dataset.yaml
 ```
+
+## Detailed Training & Usage Guide
+
+For comprehensive training options, advanced configurations, monitoring, and Python integration examples, see [MODEL_USAGE.md](MODEL_USAGE.md).

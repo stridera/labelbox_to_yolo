@@ -1,6 +1,6 @@
-# YOLO11 Model Usage Guide
+# YOLO11 Training & Usage Guide
 
-This guide explains how to use the trained YOLO11 model for Robotron sprite detection in your own Python code.
+This guide explains how to train a new YOLO11 model from scratch using only your data, and how to use the trained model for Robotron sprite detection in your own Python code.
 
 ## Model Information
 
@@ -46,6 +46,198 @@ Or if using Poetry:
 ```bash
 poetry add ultralytics
 ```
+
+## Training Your Own Model
+
+This section explains how to train a brand new YOLO11 model from scratch using only your custom dataset (no pre-trained weights).
+
+### Training from Scratch (No Pre-trained Weights)
+
+To train a completely fresh model using only your data without any pre-trained weights:
+
+```bash
+# Train from scratch using only your data
+poetry run yolo train data=datasets/Robotron/dataset.yaml model=yolo11n.yaml epochs=100 imgsz=640 batch=16 pretrained=False
+
+# Or using pip
+yolo train data=datasets/Robotron/dataset.yaml model=yolo11n.yaml epochs=100 imgsz=640 batch=16 pretrained=False
+```
+
+**Key Parameters for Training from Scratch:**
+- `model=yolo11n.yaml` - Uses the model architecture file instead of pre-trained weights
+- `pretrained=False` - Explicitly disables pre-trained weights (optional but recommended for clarity)
+- `epochs=100` - More epochs needed when training from scratch (vs 50 for transfer learning)
+- `imgsz=640` - Input image size for training
+- `batch=16` - Batch size (adjust based on your GPU memory)
+
+### Available Model Architectures
+
+| Model | Parameters | Size (MB) | Training Time | Recommended Use |
+|-------|------------|-----------|---------------|-----------------|
+| `yolo11n.yaml` | 2.6M | 5.1 | Fastest | Small datasets, quick experiments |
+| `yolo11s.yaml` | 9.4M | 18.5 | Fast | Balanced speed/accuracy |
+| `yolo11m.yaml` | 20.1M | 39.7 | Medium | Better accuracy |
+| `yolo11l.yaml` | 25.3M | 49.7 | Slow | High accuracy needed |
+| `yolo11x.yaml` | 56.9M | 111.4 | Slowest | Maximum accuracy |
+
+### Training Parameters Explained
+
+```bash
+yolo train \
+    data=datasets/Robotron/dataset.yaml \  # Path to your dataset configuration
+    model=yolo11n.yaml \                   # Model architecture (not pre-trained weights)
+    epochs=100 \                           # Number of training epochs
+    imgsz=640 \                           # Image size for training
+    batch=16 \                            # Batch size (adjust for GPU memory)
+    lr0=0.01 \                            # Initial learning rate
+    weight_decay=0.0005 \                 # Weight decay for regularization
+    warmup_epochs=3 \                     # Warmup epochs
+    box=7.5 \                             # Box loss weight
+    cls=0.5 \                             # Classification loss weight
+    dfl=1.5 \                             # DFL loss weight
+    patience=50 \                         # Early stopping patience
+    save_period=10 \                      # Save checkpoint every N epochs
+    project=runs/detect \                 # Project directory
+    name=from_scratch                     # Experiment name
+```
+
+### Training with Custom Configuration
+
+Create a custom training configuration file `custom_train.yaml`:
+
+```yaml
+# Custom training configuration
+task: detect
+mode: train
+model: yolo11n.yaml  # Use architecture file, not pre-trained weights
+data: datasets/Robotron/dataset.yaml
+epochs: 100
+patience: 50
+batch: 16
+imgsz: 640
+save: true
+save_period: 10
+cache: false
+device: 0  # GPU device (use 'cpu' for CPU training)
+workers: 8
+project: runs/detect
+name: robotron_from_scratch
+exist_ok: false
+pretrained: false  # No pre-trained weights
+optimizer: SGD
+verbose: true
+seed: 0
+deterministic: true
+single_cls: false
+rect: false
+cos_lr: false
+close_mosaic: 10
+resume: false
+amp: true  # Automatic Mixed Precision
+fraction: 1.0
+profile: false
+freeze: null
+multi_scale: false
+overlap_mask: true
+mask_ratio: 4
+dropout: 0.0
+val: true
+split: val
+save_json: false
+save_hybrid: false
+conf: null
+iou: 0.7
+max_det: 300
+half: false
+dnn: false
+plots: true
+source: null
+show: false
+save_txt: false
+save_conf: false
+save_crop: false
+show_labels: true
+show_conf: true
+vid_stride: 1
+stream_buffer: false
+line_width: null
+visualize: false
+augment: false
+agnostic_nms: false
+classes: null
+retina_masks: false
+boxes: true
+```
+
+Then train using:
+```bash
+yolo train cfg=custom_train.yaml
+```
+
+### Monitoring Training Progress
+
+During training, you can monitor progress in several ways:
+
+1. **TensorBoard** (if installed):
+```bash
+tensorboard --logdir runs/detect/robotron_from_scratch
+```
+
+2. **Training logs** are saved to:
+```
+runs/detect/robotron_from_scratch/
+├── weights/
+│   ├── best.pt        # Best performing model
+│   ├── last.pt        # Latest checkpoint
+│   └── epoch_*.pt     # Periodic checkpoints
+├── results.png        # Training curves
+├── confusion_matrix.png
+├── F1_curve.png
+├── P_curve.png
+├── R_curve.png
+├── PR_curve.png
+└── args.yaml          # Training arguments used
+```
+
+3. **Real-time console output** shows:
+   - Epoch progress
+   - Loss values (box, cls, dfl)
+   - Metrics (Precision, Recall, mAP50, mAP50-95)
+   - Learning rate
+   - GPU memory usage
+
+### Training Tips for From-Scratch Training
+
+1. **More Epochs Needed**: Training from scratch typically requires 2-3x more epochs than transfer learning
+2. **Learning Rate**: Start with `lr0=0.01` and use warmup (`warmup_epochs=3`)
+3. **Data Augmentation**: Enable more aggressive augmentation for better generalization
+4. **Early Stopping**: Use `patience=50` to prevent overfitting
+5. **Regular Checkpoints**: Save every 10 epochs with `save_period=10`
+
+### Validating Your Trained Model
+
+After training completes, validate the model:
+
+```bash
+# Validate the best model
+yolo val model=runs/detect/robotron_from_scratch/weights/best.pt data=datasets/Robotron/dataset.yaml
+
+# Validate with specific metrics
+yolo val model=runs/detect/robotron_from_scratch/weights/best.pt data=datasets/Robotron/dataset.yaml save_json=True
+```
+
+### Expected Training Time
+
+Training times for 100 epochs (approximate):
+
+| GPU | YOLO11n | YOLO11s | YOLO11m |
+|-----|---------|---------|---------|
+| RTX 4090 | 30 min | 1.5 hrs | 3 hrs |
+| RTX 3080 | 45 min | 2 hrs | 4.5 hrs |
+| RTX 2070 | 1 hr | 3 hrs | 6 hrs |
+| CPU | 8+ hrs | 20+ hrs | 40+ hrs |
+
+*Times vary based on dataset size, image resolution, and batch size*
 
 ## Basic Usage
 
