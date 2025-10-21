@@ -6,8 +6,8 @@ authors = ["strider"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-labelbox = "3.42.0"
+python = ">=3.10,<3.14"
+labelbox = {version = "^7.2.0", extras = ["data"]}
 Pillow = "10.3.0"
 python-dotenv = "1.0.0"
 PyYAML = "^6.0.3"
@@ -16,11 +16,12 @@ requests-oauthlib = "1.3.1"
 tqdm = "4.66.3"
 matplotlib = "^3.8.0"
 ultralytics = "^8.3.214"
-numpy = "^1.26"
+numpy = "^2.2"
 
 [tool.poetry.scripts]
 save-dataset = "save_dataset:main"
 view-dataset = "view_dataset:main"
+prelabel-dataset = "prelabel_dataset:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
