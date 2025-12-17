@@ -39,9 +39,11 @@ def main(api_key: str, project_id: str, dataset_id: str, save_dir: str = './data
         for raw_labels in img.labels():
             labels = json.loads(raw_labels.label)
             if labels is None or 'objects' not in labels or len(labels['objects']) == 0:
+                print(f"Skipping image {img.external_id} due to missing or empty labels")
                 continue
             objects = labels['objects']
-            img_name = img.external_id
+            # Clean up the external_id: remove Windows-style path prefixes
+            img_name = os.path.basename(img.external_id.replace('\\', '/'))
 
             img_url = img.row_data
             img_path = dir / 'images' / img_name
